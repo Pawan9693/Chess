@@ -16,7 +16,7 @@ app.get('*', function(req,res) {
 
 
 io.on('connection', function(socket) {
-	console.log(roomList);
+	//console.log(roomList);
 	socket.on('newUser', function(data) {
 		
 		if (data.chan) {
@@ -33,7 +33,7 @@ io.on('connection', function(socket) {
 			channels[socket.id] = nChan;
 			socket.emit('waiting', {chan:nChan});
 		}
-		console.log(channels[socket.id]);
+		//console.log(channels[socket.id]);
 	});
 	socket.on('move', function(data) {
 		if (data.player == 'black') roomList[data.chan][0].socket.emit('move', {move:data.move, pos:data.board});
