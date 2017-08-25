@@ -43,7 +43,7 @@ io.on('connection', function(socket) {
 	socket.on('disconnect', function() {
 		var chan = channels[socket.id];
 		if (chan) {
-			if (roomList[chan].length >= 0) {
+			if (roomList[chan].length > 0) {
 				if (roomList[chan][0].id == socket.id) {
 					broadcastRoom('hostLeft', chan);
 					roomList[chan] = [];
