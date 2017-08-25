@@ -1,4 +1,8 @@
-var board, game, username, player, chan = location.pathname == "/" ? null : location.pathname.substr(1), socket = io();
+var board, game, username, player, canMove = false, chan = location.pathname == "/" ? null : location.pathname.substr(1), socket = io();
+
+$('html, body').on('touchstart touchmove', function(e){ 
+     e.preventDefault(); 
+});
 
 socket.on('waiting', function(data) {
 	chan = data.chan;
@@ -6,16 +10,41 @@ socket.on('waiting', function(data) {
 });
 
 socket.on('hostLeft', function(data) {
-
+  canMove = false;
 });
 
 socket.on('playerLeft', function(data) {
-
+  canMove = false;
 });
 
 socket.on('newBoard', function(data) {
-	initBoard(data.pos);
+  player = data.color;
+	initBoard(data.pos, data.game);
 	updateStatus();
+});
+
+socket.on('newUser', function(data) {
+  $('#p1').html(data.user);
+});
+
+socket.on('player1', function(data) {
+  $('#p1').html(data.user);
+  canMove = true;
+  if (player == 'white') start();
+});
+
+socket.on('ready', function(data) {
+  canMove = true;
+  if (player == 'white') start();
+});
+
+socket.on('reload', function() {
+  console.log('re');
+  window.location.href = "/";
+});
+
+socket.on('newGame', function() {
+  resetBoard();
 });
 
 socket.on('move', function(data) {
@@ -24,11 +53,16 @@ socket.on('move', function(data) {
 	updateStatus();
 });
 
+if (chan) $('#color').hide();
+
 function addPlayer() {
-	player = chan ? 'black' : 'white';
-	initBoard();
+  if($('#username').val().length <=0 ) return;
+  if (!chan) player = $('#color').val();
 	username = $('#username').val();
-	socket.emit('newUser', {user:username, chan:chan, pos:game.fen()});
+  initBoard();
+  $('#p2').html(username);
+	socket.emit('newUser', {user:username, chan:chan, pos:game.fen(), color:player});
+  if (chan) socket.emit('getUser', {});
 	$('#login').hide();
 }
 
@@ -38,9 +72,9 @@ function checkUsername(event) {
 	}
 }
 
-function initBoard(pos) {
+function initBoard(pos, _game) {
 	board = null;
-	game = new Chess();
+	game = pos ? new Chess(pos) : new Chess();
 	status = $('#status');
 
 	var config = {
@@ -54,7 +88,6 @@ function initBoard(pos) {
 
 	};
 	board = ChessBoard('myBoard', config);
-
 	updateStatus();
 }
 
@@ -63,7 +96,8 @@ function onDragStart (source, piece, position, orientation) {
   if (game.game_over()) return false
   if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
       (game.turn() === 'b' && piece.search(/^w/) !== -1) ||
-      game.turn() !== player.substr(0,1)) {
+      game.turn() !== player.substr(0,1) || 
+      !canMove) {
     return false
   }
 }
@@ -84,30 +118,63 @@ function onSnapEnd () {
   board.position(game.fen())
 }
 
-function updateStatus (move) {
-  var status = ''
+function playAgain() {
+  $('#playAgain').show();
+  setTimeout(function() {
+    $('#gameOver').toggleClass("show");
+  }, 4000);
+}
 
-  var moveColor = 'White'
+function resetBoard() {
+  initBoard();
+  $('#playAgain').hide();
+  $('#gameOver').hide();
+  if (player == 'white') start();
+}
+
+function newGame() {
+  socket.emit('newGame', {chan:chan});
+}
+
+function start() {
+  if (player == 'white') {
+    $('#gameOver').html('START');
+    $('#gameOver').toggleClass('show');
+    setTimeout(function() {
+      $('#gameOver').html('Game Over');
+      $('#gameOver').toggleClass('show');
+    }, 1000);
+  }
+}
+
+function updateStatus (move) {
+  var status = '';
+
+  var moveColor = 'White';
   if (game.turn() === 'b') {
-    moveColor = 'Black'
+    moveColor = 'Black';
   }
 
   if (game.in_checkmate()) {
-    status = 'Game over, ' + moveColor + ' is in checkmate.'
+    status = 'Game over, ' + moveColor + ' is in checkmate.';
+    playAgain();
   }
 
   else if (game.in_draw()) {
-    status = 'Game over, drawn position'
+    status = 'Game over, drawn position';
+    playAgain();
   }
 
   else {
-    status = moveColor + ' to move'
+    status = moveColor + ' to move';
 
     if (game.in_check()) {
-      status += ', ' + moveColor + ' is in check'
+      status += ', ' + moveColor + ' is in check';
     }
   }
 
   $('#status').html(status);
   if (move) socket.emit('move', {move:move, chan:chan, player:player, board:game.fen()});
 }
+
+$('#playAgain').hide();

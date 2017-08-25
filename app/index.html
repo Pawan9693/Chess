@@ -10,13 +10,21 @@
 		<img src="img/logo.png">
 		<div class="loginForm">
 			<input type="text" id="username" placeholder="Username" onkeyup="checkUsername(event)">
+			<select id="color">
+				<option value="white">White</option>
+				<option value="black">Black</option>
+			</select>
 			<button onclick="addPlayer()">Join</button>
 		</div>
 	</div>
 	<div class="myGame"> 
 		<div id="status"></div>
+		<div class="p1"><b id="p1"></b></div>
 		<div id="myBoard" style="width: 500px"></div>
+		<div class="p2"><b id="p2"></b></div>
+		<button id="playAgain" onClick="newGame()">Play Again</button>
 		<div id="joinLink"></div>
+		<div id="gameOver">Game Over</div>
 	</div>
 	<script src="js/jquery.js"></script>
 	<script src="js/socket.js"></script>

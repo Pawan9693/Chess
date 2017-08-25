@@ -16,27 +16,34 @@ app.get('*', function(req,res) {
 
 
 io.on('connection', function(socket) {
-	//console.log(roomList);
 	socket.on('newUser', function(data) {
 		
 		if (data.chan) {
 			if (roomList[data.chan]) {
-				channels[socket.id] = data.chan;
-				roomList[data.chan].push(new User({id:socket.id, chan:data.chan, username:data.user, socket:this, board:data.board, game:null}));
-				socket.emit('newBoard', {pos:roomList[data.chan][0].pos});
+				if (roomList[data.chan].length <= 0) {
+					socket.emit('reload');
+				}
+				else {
+					channels[socket.id] = data.chan;
+					roomList[data.chan].push(new User({id:socket.id, chan:data.chan, username:data.user, socket:this, color:roomList[data.chan][0].color=="white"?"black":"white"}));
+					socket.emit('newBoard', {pos:roomList[data.chan][0].pos, game:roomList[data.chan][0].game, color:roomList[data.chan][0].color=="white"?"black":"white"});
+					roomList[data.chan][0].socket.emit('newUser', {user:data.user});
+				}
+			}
+			else {
+				socket.emit('reload');
 			}
 		}
 		else {
 			var nChan = makeChan();
 			roomList[nChan] = [];
-			roomList[nChan].push(new User({id:socket.id, chan:nChan, username:data.user, socket:this, pos:data.pos}));
+			roomList[nChan].push(new User({id:socket.id, chan:nChan, username:data.user, socket:this, pos:data.pos, color:data.color}));
 			channels[socket.id] = nChan;
 			socket.emit('waiting', {chan:nChan});
 		}
-		//console.log(channels[socket.id]);
 	});
 	socket.on('move', function(data) {
-		if (data.player == 'black') roomList[data.chan][0].socket.emit('move', {move:data.move, pos:data.board});
+		if (data.player == roomList[data.chan][1].color) roomList[data.chan][0].socket.emit('move', {move:data.move, pos:data.board});
 		else roomList[data.chan][1].socket.emit('move', {move:data.move, pos:data.board});
 		roomList[data.chan][0].pos = data.board;
 	});
@@ -55,6 +62,15 @@ io.on('connection', function(socket) {
 			}
 		}
 	});
+	socket.on('getUser', function(data) {
+		if (roomList[channels[socket.id]] && roomList[channels[socket.id]].length > 0) {
+			socket.emit('player1', {user:roomList[channels[socket.id]][0].username});
+			roomList[channels[socket.id]][0].socket.emit('ready', {});
+		}
+	});
+	socket.on('newGame', function(data) {
+		broadcastRoom('newGame', data.chan);
+	});
 });
 
 function broadcastRoom(msg, chan) {
@@ -69,6 +85,7 @@ function User(params) {
 	this.username= params.username;
 	this.socket = params.socket;
 	this.pos = params.pos;
+	this.color = params.color;
 }
 
 function makeChan() {
