@@ -1,0 +1,50 @@
+* {
+	padding: 0;
+	margin: 0;
+	transition: all 0.3s ease;
+	font-family: monospace;
+}
+
+body {
+	overflow: hidden;
+}
+
+#login, .myGame {
+	margin: auto;
+	width: 600px;
+	text-align: center;
+	padding-top: calc(50% - 600px);
+}
+
+.myGame {
+	padding-top: 30px;
+}
+
+#myBoard {
+	padding: 20px;
+	padding-left: 50px;
+}
+
+.loginForm {
+	margin: 20px;
+}
+
+.loginForm input {
+	padding: 6px 12px;
+	font-size: 1.2em;
+	border-radius: 3px;
+	border: 1px solid gray;
+}
+
+.loginForm button {
+	padding: 6px 12px;
+	background: #237cb5;
+	color: white;
+	font-size: 1.2em;
+	border: none;
+	border-radius: 3px;
+}
+
+.loginForm button:hover {
+	background: #175a86;
+}
