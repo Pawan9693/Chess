@@ -119,7 +119,7 @@ function onSnapEnd () {
 }
 
 function playAgain() {
-  $('#playAgain').show();
+  $('#playAgain').toggleClass('show');
   setTimeout(function() {
     $('#gameOver').toggleClass("show");
   }, 4000);
@@ -127,7 +127,7 @@ function playAgain() {
 
 function resetBoard() {
   initBoard();
-  $('#playAgain').hide();
+  $('#playAgain').toggleClass('show');
   $('#gameOver').hide();
   if (player == 'white') start();
 }
@@ -176,5 +176,3 @@ function updateStatus (move) {
   $('#status').html(status);
   if (move) socket.emit('move', {move:move, chan:chan, player:player, board:game.fen()});
 }
-
-$('#playAgain').hide();
