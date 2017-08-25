@@ -4,8 +4,9 @@ var serv = require('http').Server(app);
 var io = require('socket.io')(serv);
 var port = process.env.PORT || 3000;
 
-
 var roomList = [], channels = [];
+
+serv.listen(port);
 
 app.use(express.static(__dirname+'/app'));
 
@@ -13,9 +14,6 @@ app.get('*', function(req,res) {
 	res.sendFile(__dirname + '/app/index.html');
 });
 
-serv.listen(port, function() {
-	console.log('running on port ' + port);
-});
 
 io.on('connection', function(socket) {
 	console.log(roomList);
