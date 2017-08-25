@@ -7,7 +7,7 @@ var port = process.env.PORT || 3000;
 
 var roomList = [], channels = [];
 
-app.use('/', express.static(__dirname+'/app'));
+app.use(express.static(__dirname+'/app'));
 
 app.get('*', function(req,res) {
 	res.sendFile(__dirname + '/app/index.html');
